@@ -1,0 +1,87 @@
+﻿@page "/movies/details"
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject Lab5555.Data.ApplicationDbContext DB
+@using Lab5.Components
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h4>Movie</h4>
+    <hr />
+    @if (movie is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@movie.Title</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@movie.Description</dd>
+            <dt class="col-sm-2">RelaseDate</dt>
+            <dd class="col-sm-10">@movie.RelaseDate</dd>
+            <dt class="col-sm-2">Rate</dt>
+            <dd class="col-sm-10">@movie.Rate</dd>
+            <dt class="col-sm-2">Rate Count</dt>
+            <dd class="col-sm-10">@movie.RateCount</dd>
+            <p style="display: inline !important;">Your rating: @rateDisplay</p>
+            <img style="width: 80px !important; height: 50px !important; display: inline" src="https://th.bing.com/th/id/OIG3.SW5aU3tOSPkYmmRlSlpd?w=100&h=100&rs=1&pid=ImgDetMain" @onclick="() => rateUpdate(movie, 1)" alt="Alternate Text" @onmouseover="() => setRateDisplay(1)"/>
+            <img style="width: 80px !important; height: 50px !important; display: inline" src="https://th.bing.com/th/id/OIG3.SW5aU3tOSPkYmmRlSlpd?w=100&h=100&rs=1&pid=ImgDetMain" @onclick="() => rateUpdate(movie, 2)" alt="Alternate Text" @onmouseover="() => setRateDisplay(2)" />
+            <img style="width: 80px !important; height: 50px !important; display: inline" src="https://th.bing.com/th/id/OIG3.SW5aU3tOSPkYmmRlSlpd?w=100&h=100&rs=1&pid=ImgDetMain" @onclick="() => rateUpdate(movie, 3)" alt="Alternate Text" @onmouseover="() => setRateDisplay(3)" />
+            <img style="width: 80px !important; height: 50px !important; display: inline" src="https://th.bing.com/th/id/OIG3.SW5aU3tOSPkYmmRlSlpd?w=100&h=100&rs=1&pid=ImgDetMain" @onclick="() => rateUpdate(movie, 4)" alt="Alternate Text" @onmouseover="() => setRateDisplay(4)" />
+            <img style="width: 80px !important; height: 50px !important; display: inline" src="https://th.bing.com/th/id/OIG3.SW5aU3tOSPkYmmRlSlpd?w=100&h=100&rs=1&pid=ImgDetMain" @onclick="() => rateUpdate(movie, 5)" alt="Alternate Text" @onmouseover="() => setRateDisplay(5)" />
+            <br />
+            <br />
+            
+        </dl>
+        <img class="col-sm-10" style="width: 400px !important;" width="250" height="400" src="@movie.Image_url" />
+        <div>
+            <a href="@($"/movies/edit?id={movie.Id}")">Edit</a> |
+            <a href="@($"/movies")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Movie? movie;
+    Movie? m1;
+    int rateDisplay = 1;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Movie? Movie { get; set; }
+
+    protected void setRateDisplay(int r)
+    {
+        rateDisplay = r;
+    }
+
+    protected async void rateUpdate(Movie m, int rate)
+    {
+        m1 = await DB.Movie.FindAsync(m.Id);
+        if(m1 != null)
+        {
+            m1.Rate = (m1.Rate * m1.RateCount + rate) / (++m1.RateCount);
+        }
+
+        await DB.SaveChangesAsync();
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        movie = await DB.Movie.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (movie is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
